@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Criar conta</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #1a1a2e;
+           color: white; display: flex; align-items: center;
+           justify-content: center; min-height: 100vh; margin: 0; }
+    .card { background: #16213e; border-radius: 20px;
+            padding: 2.5rem; max-width: 400px; width: 90%; }
+    h1 { color: #a855f7; font-size: 1.8rem; margin-bottom: 0.3rem; }
+    .sub { color: #888; font-size: 0.9rem; margin-bottom: 1.5rem; }
+    label { display: block; color: #aaa; font-size: 0.88rem;
+            margin-bottom: 0.35rem; margin-top: 0.9rem; }
+    input { width: 100%; padding: 0.75rem;
+            border: 2px solid #333; border-radius: 10px;
+            background: #0f0e17; color: white;
+            font-size: 0.95rem; transition: border-color 0.2s; }
+    input:focus { outline: none; border-color: #a855f7; }
+    button { width: 100%; margin-top: 1.4rem; background: #a855f7;
+             color: white; border: none; padding: 0.85rem;
+             border-radius: 10px; font-size: 1rem; cursor: pointer;
+             font-weight: bold; transition: background 0.2s; }
+    button:hover { background: #9333ea; }
+    .erro { background: rgba(255,77,166,0.1);
+            border: 1px solid rgba(255,77,166,0.3);
+            border-radius: 10px; padding: 0.7rem 1rem;
+            color: #ff4da6; font-size: 0.9rem; margin-bottom: 1rem; }
+    .link { text-align: center; margin-top: 1.2rem;
+            color: #666; font-size: 0.88rem; }
+    .link a { color: #a855f7; text-decoration: none; }
+    .link a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>👤 Criar conta</h1>
+  <p class="sub">Junta-te ao leaderboard!</p>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for categoria, msg in msgs %}
+      <div class="erro">⚠️ {{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <form action="/registo" method="POST">
+    <label for="nome">Nome</label>
+    <input type="text" id="nome" name="nome"
+           placeholder="O teu nome" maxlength="50"
+           required autofocus>
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email"
+           placeholder="o-teu@email.com" required>
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password"
+           placeholder="Mínimo 6 caracteres"
+           minlength="6" required>
+
+    <button type="submit">🚀 Criar conta</button>
+  </form>
+
+  <p class="link">
+    Já tens conta? <a href="/login">Faz login</a>
+  </p>
+</div>
+</body>
+</html>

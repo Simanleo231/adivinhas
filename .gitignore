@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+*.pyc
+
+# Base de dados local (não vai para produção)
+adivinhas.db
+
+# Ficheiro de segredos local
+.env

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Adivinhas</title>
+
+    <style>
+        .nav {
+              display: flex; justify-content: space-between;
+              align-items: center; background: #16213e;
+              border-radius: 14px; padding: 0.8rem 1.2rem;
+              font-size: 0.9rem;
+            }
+            .nav a {
+              color: #aaa; text-decoration: none;
+              margin-left: 1rem; transition: color 0.2s;
+            }
+            .nav a:hover { color: white; }
+            .btn {
+              display: block; background: #ff6b35; color: white;
+              padding: 0.9rem; border-radius: 10px; text-align: center;
+              text-decoration: none; font-weight: bold;
+              font-size: 1rem; margin-bottom: 0.8rem;
+            }
+
+        body{
+            font-family: Arial;
+            background: #1a1a2e;
+            color: white;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .card{
+            background: #16213e;
+
+            padding: 40px;
+
+            border-radius: 20px;
+
+            width: 400px;
+
+            text-align: center;
+        }
+
+        a{
+            display: inline-block;
+
+            margin-top: 20px;
+
+            background: orange;
+            color: white;
+
+            padding: 15px 30px;
+
+            text-decoration: none;
+
+            border-radius: 10px;
+        }
+
+    </style>
+
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Barra de utilizador -->
+  <div class="nav">
+    <span>👋 Olá, <strong>{{ current_user.nome }}</strong></span>
+    <div>
+      <a href="/perfil">📋 Perfil</a>
+      <a href="/logout">🚪 Sair</a>
+    </div>
+  </div>
+
+  <!-- Bloco do jogo: sem formulário de nome -->
+  <div class="card">
+    <h1>🧩 Adivinhas</h1>
+    <p class="subtitulo">Consegues entrar no top 5?</p>
+    <a href="/jogar" class="btn">🚀 Iniciar Jogo</a>
+    <p class="info">5 perguntas · +100 acerto · −50 erro</p>
+  </div>
+
+  <!-- Leaderboard (igual à Parte 3) -->
+  <div class="card">
+    <div class="lb-titulo">🏆 Top 5 — Melhores de sempre</div>
+    {% if top5 %}
+    <table>
+      <thead><tr>
+        <th>#</th><th>Jogador</th><th>Pontos</th>
+      </tr></thead>
+      <tbody>
+        {% for entrada in top5 %}
+        <tr>
+          <td class="posicao pos-{{ loop.index }}">
+            {% if loop.index == 1 %}🥇
+            {% elif loop.index == 2 %}🥈
+            {% elif loop.index == 3 %}🥉
+            {% else %}{{ loop.index }}
+            {% endif %}
+          </td>
+          <td>{{ entrada.utilizador.nome }}</td>
+          <td>{{ entrada.pontos }} pts</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="vazio">Ainda não há recordes. Sê o primeiro! 🎯</p>
+    {% endif %}
+  </div>
+
+</div>
+</body>
+</html>

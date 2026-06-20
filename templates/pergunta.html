@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Pergunta</title>
+
+    <style>
+
+        body{
+            font-family: Arial;
+            background: #1a1a2e;
+            color: white;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .card{
+            background: #16213e;
+
+            padding: 40px;
+
+            border-radius: 20px;
+
+            width: 500px;
+        }
+
+        input{
+            width: 100%;
+
+            padding: 12px;
+
+            margin-top: 20px;
+        }
+
+        button{
+            margin-top: 20px;
+
+            width: 100%;
+
+            padding: 12px;
+
+            background: orange;
+
+            border: none;
+
+            color: white;
+
+            font-size: 16px;
+
+            border-radius: 10px;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<div class="card">
+
+    <h3>Pergunta {{ numero }} de {{ total }}</h3>
+
+    <h2>{{ pergunta }}</h2>
+
+    <h3>Pontuação: {{ pontuacao }}</h3>
+
+    <form action="/verificar" method="POST">
+
+        <input
+            type="text"
+            name="resposta"
+            placeholder="Resposta..."
+            autofocus
+        >
+
+        <button type="submit">
+            Verificar
+        </button>
+
+    </form>
+
+</div>
+
+</body>
+</html>
