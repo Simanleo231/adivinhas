@@ -56,3 +56,18 @@
     {% endif %}
   </div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+  // 🥇 Leaderboard trocista — apareces sempre em último
+  (function () {
+    const corpo = document.querySelector("table tbody");
+    if (!corpo) return;
+    const nome = {{ current_user.nome|tojson }};
+    const tr = document.createElement("tr");
+    tr.style.opacity = "0.85";
+    tr.innerHTML = "<td>💩</td><td>" + nome + " (tu)</td><td>último 🤣</td>";
+    corpo.appendChild(tr);
+  })();
+</script>
+{% endblock %}

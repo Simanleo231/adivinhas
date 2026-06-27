@@ -76,6 +76,19 @@
   })();
   {% endif %}
 
+  {% if acertou %}
+  // 🤥 "ERRADO!" falso antes de revelar que afinal acertaste
+  (function () {
+    const f = document.createElement("div");
+    f.style.cssText = "position:fixed;inset:0;z-index:101;display:flex;align-items:center;" +
+      "justify-content:center;background:rgba(0,0,0,0.88);text-align:center;padding:1rem;";
+    f.innerHTML = "<div style='font-size:clamp(2.5rem,12vw,7rem);font-weight:900;color:#ff4da6;" +
+      "text-transform:uppercase;'>❌ Errado!</div>";
+    document.body.appendChild(f);
+    setTimeout(function () { f.remove(); }, 1300);
+  })();
+  {% endif %}
+
   // Chuva de confettis a cada resultado (mesmo nas erradas 😈)
   (function () {
     const E = ["🎉","🎊","⭐","✨","🔥","💥","🥳"];

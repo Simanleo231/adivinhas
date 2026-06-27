@@ -138,5 +138,75 @@
       setTimeout(function () { window.location.href = link.href; }, 2200);
     });
   })();
+
+  // ─── Tortura na pergunta (dobro da intensidade) ───
+  (function () {
+    const input = document.querySelector('input[name="resposta"]');
+    const form  = document.querySelector('form[action="/verificar"]');
+    const btn   = form ? form.querySelector('button[type="submit"]') : null;
+
+    // 1) Input que foge ao escrever/focar
+    if (input) {
+      function fugir() {
+        const dx = (Math.random() - 0.5) * 220, dy = (Math.random() - 0.5) * 130;
+        input.style.position = "relative";
+        input.style.transition = "transform 0.12s";
+        input.style.transform = "translate(" + dx + "px," + dy + "px)";
+        setTimeout(function () { input.style.transform = ""; }, 900);
+      }
+      input.addEventListener("mouseenter", fugir);
+      input.addEventListener("focus", fugir);
+    }
+
+    // 2) Apaga a resposta "sem querer" ao submeter (40%)
+    if (form && input) {
+      form.addEventListener("submit", function () {
+        if (Math.random() < 0.4) input.value = "";
+      });
+    }
+
+    // 6) Botão indeciso (muda de nome sozinho)
+    if (btn) {
+      const LABELS = ["Verificar","Confirmar","De certeza?","Talvez?","Vá lá...",
+                      "Carrega!","Confirmar mesmo?","Hmm?"];
+      let li = 0;
+      setInterval(function () { li = (li + 1) % LABELS.length; btn.textContent = LABELS[li]; }, 1200);
+    }
+
+    // 9) Escrita atrasada (as letras aparecem ~0.6s depois)
+    if (input) {
+      input.addEventListener("keydown", function (e) {
+        if (e.key.length === 1) {
+          e.preventDefault();
+          const ch = e.key;
+          setTimeout(function () { input.value += ch; }, 600);
+        }
+      });
+    }
+
+    // 10) Pontuação a tremer
+    const pv = document.getElementById("pontosVal");
+    if (pv) {
+      const real = pv.textContent;
+      setInterval(function () {
+        if (Math.random() < 0.6) {
+          pv.textContent = (parseInt(real, 10) || 0) + Math.floor(Math.random() * 60 - 30);
+          setTimeout(function () { pv.textContent = real; }, 220);
+        }
+      }, 1000);
+    }
+
+    // 7) Captcha parvo antes de responder
+    const ov = document.createElement("div");
+    ov.className = "captcha-ov";
+    ov.innerHTML =
+      "<div class='captcha-cx'><p><b>Confirma que não és um robô</b></p>" +
+      "<p style='font-size:0.85rem;color:#555'>Clica em todos os semáforos 🚦 (não há nenhum)</p>" +
+      "<button>Não sou robô 🤖</button></div>";
+    document.body.appendChild(ov);
+    ov.querySelector("button").addEventListener("click", function (e) {
+      e.stopPropagation(); ov.remove();
+    });
+  })();
 </script>
 {% endblock %}

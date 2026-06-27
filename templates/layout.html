@@ -337,6 +337,38 @@
     }
     .flash-print.on { opacity: 0.85; }
 
+    /* 🫁 Página a respirar (zoom in/out sem parar) */
+    @keyframes respira {
+      0%,100% { transform: rotate(1.5deg) scale(1); }
+      50%     { transform: rotate(1.5deg) scale(1.08); }
+    }
+    .card { animation: respira 2.6s ease-in-out infinite; }
+
+    /* 🖱️ Cursores falsos */
+    .cursor-falso { position: fixed; z-index: 59; pointer-events: none; font-size: 1.1rem; }
+
+    /* 📩 Notificações falsas */
+    .notif-falsa {
+      position: fixed; right: 16px; z-index: 85; background: #fff; color: #111;
+      border-radius: 10px; padding: 0.7rem 1rem; font-size: 0.85rem;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4); max-width: 260px;
+      transition: opacity 0.4s;
+    }
+
+    /* 🤖 Captcha parvo */
+    .captcha-ov {
+      position: fixed; inset: 0; z-index: 92; background: rgba(0,0,0,0.8);
+      display: flex; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .captcha-cx {
+      background: #fff; color: #111; border-radius: 12px; padding: 1.5rem;
+      max-width: 320px; text-align: center;
+    }
+    .captcha-cx p { margin: 0 0 0.5rem; }
+    .captcha-cx button {
+      width: auto; margin-top: 1rem; background: #4285f4; color: #fff;
+    }
+
     {% block extra_css %}{% endblock %}
   </style>
 </head>
@@ -884,6 +916,58 @@
           cobra.forEach(function (s) { g.fillRect(s.x*P, s.y*P, P-2, P-2); });
         }, 120);
       }
+
+      // 22) Cursores falsos a mais 🖱️ (x6, com atrasos diferentes)
+      const cursores = [];
+      for (let i = 0; i < 6; i++) {
+        const cu = document.createElement("div");
+        cu.className = "cursor-falso"; cu.textContent = "↖️";
+        document.body.appendChild(cu);
+        cursores.push({ el: cu, ox: Math.random() * window.innerWidth,
+                        oy: Math.random() * window.innerHeight, f: 0.03 + Math.random() * 0.12 });
+      }
+      (function moverCursores() {
+        cursores.forEach(function (c) {
+          c.ox += (mx - c.ox) * c.f; c.oy += (my - c.oy) * c.f;
+          c.el.style.left = c.ox + "px"; c.el.style.top = c.oy + "px";
+        });
+        requestAnimationFrame(moverCursores);
+      })();
+
+      // 23) "1 nova mensagem" 📩 (popups falsos, frequentes)
+      const NOTIFS = ["📩 1 nova mensagem","🔔 Tens 3 notificações","⚠️ O teu PC está lento",
+                      "💬 Alguém mencionou-te","🎁 Ganhaste! (não)","📸 Print guardado",
+                      "🦠 Vírus detetado (mentira)","🔋 Bateria fraca"];
+      setInterval(function () {
+        const n = document.createElement("div");
+        n.className = "notif-falsa";
+        n.textContent = NOTIFS[Math.floor(Math.random() * NOTIFS.length)];
+        n.style.top = (16 + Math.random() * 70) + "px";
+        document.body.appendChild(n);
+        setTimeout(function () { n.style.opacity = "0"; }, 3500);
+        setTimeout(function () { n.remove(); }, 4000);
+      }, 6000);
+
+      // 24) Página espelhada 🔁 (no <html> para não chocar com o flip do body)
+      setInterval(function () {
+        document.documentElement.style.transition = "transform 0.5s";
+        document.documentElement.style.transform = "scaleX(-1)";
+        setTimeout(function () { document.documentElement.style.transform = ""; }, 6000);
+      }, 30000);
+
+      // 25) Scroll fantasma 📜
+      setInterval(function () {
+        window.scrollBy({ top: (Math.random() < 0.5 ? -1 : 1) * 80, behavior: "smooth" });
+      }, 9000);
+
+      // 26) Pico de volume 🔊 (susto)
+      const audioPico = document.getElementById("musica");
+      setInterval(function () {
+        if (!audioPico || audioPico.paused) return;
+        const v = audioPico.volume;
+        audioPico.volume = 1;
+        setTimeout(function () { audioPico.volume = v; }, 800);
+      }, 15000);
 
       // 21) Aviso ao fechar a tab (não dá para impedir mesmo — só o aviso do
       //     browser). Só dispara ao fechar, não nas mudanças de página do site.
