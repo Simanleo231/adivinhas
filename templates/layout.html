@@ -669,30 +669,6 @@
         setTimeout(function () { document.body.style.transform = ""; }, 10000);
       }, 45000);
 
-      // 11) Chuva "Matrix" no fundo (atrás dos cartões)
-      const cv = document.createElement("canvas");
-      cv.style.cssText = "position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0.22;";
-      document.body.appendChild(cv);
-      const ctx = cv.getContext("2d");
-      let cols, pingos = [];
-      function dimMatrix() {
-        cv.width = window.innerWidth; cv.height = window.innerHeight;
-        cols = Math.floor(cv.width / 14); pingos = [];
-        for (let i = 0; i < cols; i++) pingos[i] = Math.random() * cv.height;
-      }
-      dimMatrix();
-      window.addEventListener("resize", dimMatrix);
-      (function matrix() {
-        ctx.fillStyle = "rgba(10,12,25,0.08)"; ctx.fillRect(0, 0, cv.width, cv.height);
-        ctx.fillStyle = "#39ff6e"; ctx.font = "14px monospace";
-        for (let i = 0; i < cols; i++) {
-          ctx.fillText(String.fromCharCode(0x30A0 + Math.random() * 96), i * 14, pingos[i]);
-          pingos[i] += 14;
-          if (pingos[i] > cv.height && Math.random() > 0.975) pingos[i] = 0;
-        }
-        requestAnimationFrame(matrix);
-      })();
-
       // 12) Balões a subir de vez em quando
       setInterval(function () {
         const b = document.createElement("div");
