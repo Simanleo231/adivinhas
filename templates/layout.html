@@ -486,6 +486,7 @@
         if (audio.paused) {
           // LIGAR → bloqueia até tocar pelo menos 1 música inteira
           podeDesligar = false;
+          localStorage.setItem("musica_ligada", "1");
           if (!audio.src) carregar();
           tocar();
         } else if (podeDesligar) {
@@ -512,6 +513,7 @@
         e.stopPropagation();
         modalOff.classList.remove("mostra");
         audio.pause();
+        localStorage.setItem("musica_ligada", "0");
         atualizarIcone();
       });
 
@@ -535,7 +537,8 @@
       }
       function tickTimer() {
         if (--restantes <= 0) {           // chegou a zero → desliga a música
-          audio.pause(); atualizarIcone(); pararTimer(); return;
+          audio.pause(); localStorage.setItem("musica_ligada", "0");
+          atualizarIcone(); pararTimer(); return;
         }
         btnTimer.textContent = "⏲️ " + fmt(restantes);
       }
@@ -554,9 +557,32 @@
       atualizarRelogio();          // mostra logo as horas no botão do topo
       setInterval(atualizarRelogio, 1000);
 
-      idx = Math.floor(Math.random() * NOMES.length);   // primeira faixa aleatória
+      // ─── Continuidade entre páginas ───
+      // A música só começa ao clicar no botão. Ao mudar de página, retoma de
+      // onde ia (não reinicia), porque guardamos a faixa e a posição.
+      const ligada   = localStorage.getItem("musica_ligada") === "1";
+      const savedIdx = parseInt(localStorage.getItem("musica_idx") || "-1", 10);
+      const savedPos = parseFloat(localStorage.getItem("musica_pos") || "0");
+      idx = (savedIdx >= 0 && savedIdx < NOMES.length)
+            ? savedIdx : Math.floor(Math.random() * NOMES.length);
       carregar();
-      tocar();   // tenta arrancar (a maioria dos browsers só deixa após interação)
+      if (ligada) {
+        podeDesligar = (localStorage.getItem("musica_podedesligar") === "1");
+        audio.addEventListener("loadedmetadata", function () {
+          if (savedPos > 0 && savedPos < audio.duration) audio.currentTime = savedPos;
+        }, { once: true });
+        tocar();   // retoma (permitido depois de já se ter clicado no site)
+      } else {
+        info.textContent = "";   // nada a tocar ainda
+      }
+
+      // Guarda a posição para a próxima página continuar de onde ia
+      audio.addEventListener("timeupdate", function () {
+        if (audio.paused) return;
+        localStorage.setItem("musica_idx", idx);
+        localStorage.setItem("musica_pos", audio.currentTime || 0);
+        localStorage.setItem("musica_podedesligar", podeDesligar ? "1" : "0");
+      });
     })();
   </script>
 
