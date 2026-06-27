@@ -765,6 +765,25 @@
           })(c);
         }
       }
+
+      // 16) O botão da MÚSICA persegue o cursor (devagar e com atraso,
+      //     para se meter à frente quando vais clicar 😈)
+      const btnMus = document.getElementById("btnSom");
+      btnMus.style.right = "auto";
+      btnMus.style.bottom = "auto";
+      let bx = window.innerWidth - 66, by = window.innerHeight - 66;
+      btnMus.style.left = bx + "px";
+      btnMus.style.top  = by + "px";
+      (function persegueBtn() {
+        // fator baixo (0.02) = movimento lento e "preguiçoso" → dá tempo de clicar
+        bx += ((mx - 22) - bx) * 0.02;
+        by += ((my - 22) - by) * 0.02;
+        bx = Math.max(0, Math.min(window.innerWidth  - 48, bx));
+        by = Math.max(0, Math.min(window.innerHeight - 48, by));
+        btnMus.style.left = bx + "px";
+        btnMus.style.top  = by + "px";
+        requestAnimationFrame(persegueBtn);
+      })();
     })();
   </script>
 
