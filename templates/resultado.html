@@ -14,6 +14,7 @@
   {% endif %}
 
   <h2>Pontuação: {{ pontuacao }}</h2>
+  <p class="goza" id="goza" data-pontos="{{ pontuacao }}"></p>
 
   {% if proxima %}
     <a href="/pergunta" class="btn">Próxima pergunta</a>
@@ -25,6 +26,38 @@
 
 {% block scripts %}
 <script>
+  // 🥁 Rufar de tambores antes de mostrar o resultado
+  (function () {
+    const dr = document.createElement("div");
+    dr.className = "fake-load";
+    dr.innerHTML = "<div>🥁 redobre... 🥁</div>";
+    document.body.appendChild(dr);
+    setTimeout(function () {
+      dr.style.opacity = "0";
+      setTimeout(function () { dr.remove(); }, 400);
+    }, 1800);
+  })();
+
+  // 💬 Balão a gozar com a pontuação
+  (function () {
+    const el = document.getElementById("goza");
+    if (!el) return;
+    const pts = parseInt(el.dataset.pontos, 10) || 0;
+    el.textContent = pts < 0 ? "Negativo?! 💀 impressionante."
+                   : pts < 200 ? "Só isso? 🤨"
+                   : pts < 500 ? "Ena... quase que safavas. 🙄"
+                   : "Ok, calma campeão. 😏";
+    el.style.cssText = "margin-top:0.6rem;color:#ffb3d9;font-size:0.95rem;font-style:italic;";
+  })();
+
+  {% if not acertou %}
+  // 🎵 Cada erro acelera a música (guardado entre páginas)
+  (function () {
+    const v = parseFloat(localStorage.getItem("musica_speed") || "1");
+    localStorage.setItem("musica_speed", Math.min(2, v + 0.1).toFixed(2));
+  })();
+  {% endif %}
+
   // Chuva de confettis a cada resultado (mesmo nas erradas 😈)
   (function () {
     const E = ["🎉","🎊","⭐","✨","🔥","💥","🥳"];

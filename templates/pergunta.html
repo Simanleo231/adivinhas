@@ -25,7 +25,7 @@
 
   <form action="/verificar" method="POST">
     <input type="text" name="resposta" placeholder="Resposta..." autofocus>
-    <button type="submit">Verificar</button>
+    <button type="submit" class="fujao">Verificar</button>
   </form>
 
   <a href="/desistir" class="desistir">😭 Sou uma merda, quero desistir</a>
@@ -122,6 +122,17 @@
     if (!link) return;
     link.addEventListener("click", function (e) {
       e.preventDefault();
+      // 🔊 Som dramático "wah-wah-wah" a descer
+      try {
+        const ac = new (window.AudioContext || window.webkitAudioContext)();
+        [440, 330, 247, 175].forEach(function (f, i) {
+          const o = ac.createOscillator(), g = ac.createGain();
+          o.type = "sawtooth"; o.frequency.value = f; g.gain.value = 0.08;
+          o.connect(g); g.connect(ac.destination);
+          o.start(ac.currentTime + i * 0.22);
+          o.stop(ac.currentTime + i * 0.22 + 0.22);
+        });
+      } catch (e2) {}
       const m = document.createElement("div");
       m.style.cssText =
         "position:fixed;inset:0;z-index:100;display:flex;align-items:center;" +
