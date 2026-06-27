@@ -52,6 +52,7 @@
     .bg-overlay {
       position: fixed; inset: 0; z-index: -1;
       background: rgba(10,12,25,0.78);
+      animation: rave 30s infinite;   /* fundo rave (lento e discreto) */
     }
     @keyframes troca {
       0%   { opacity: 0; }
@@ -59,6 +60,13 @@
       25%  { opacity: 1; }
       31%  { opacity: 0; }
       100% { opacity: 0; }
+    }
+    @keyframes rave {
+      0%   { background: rgba(22,10,30,0.78); }
+      25%  { background: rgba(10,26,30,0.78); }
+      50%  { background: rgba(28,22,10,0.78); }
+      75%  { background: rgba(10,20,32,0.78); }
+      100% { background: rgba(22,10,30,0.78); }
     }
 
     /* ─── Layout em coluna (várias caixas) ──────────── */
@@ -255,6 +263,57 @@
       font-size: 0.75rem; text-decoration: underline; cursor: pointer;
     }
 
+    /* Banner de cookies falso */
+    .cookie-falso {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+      z-index: 15; background: var(--cartao); color: #ddd;
+      border: 1px solid rgba(255,255,255,0.15); border-radius: 14px;
+      padding: 0.7rem 1rem; font-size: 0.82rem; display: flex;
+      align-items: center; gap: 0.6rem; max-width: 340px; width: 90%;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    }
+    .cookie-falso button {
+      width: auto; margin: 0; padding: 0.4rem 0.9rem; font-size: 0.8rem;
+      border-radius: 8px; flex-shrink: 0;
+    }
+
+    /* Toast passivo-agressivo */
+    .toast-pa {
+      position: fixed; top: 14px; left: 14px; z-index: 22;
+      background: rgba(255,77,166,0.15); color: #ffb3d9;
+      border: 1px solid rgba(255,77,166,0.35); border-radius: 12px;
+      padding: 0.5rem 0.9rem; font-size: 0.82rem; max-width: 240px;
+      opacity: 0; transform: translateY(-8px);
+      transition: opacity 0.3s, transform 0.3s; pointer-events: none;
+    }
+    .toast-pa.ver { opacity: 1; transform: translateY(0); }
+
+    /* Loading falso antes de cada pergunta */
+    .fake-load {
+      position: fixed; inset: 0; z-index: 90; display: flex;
+      align-items: center; justify-content: center;
+      background: var(--fundo); transition: opacity 0.4s; font-size: 1.2rem;
+    }
+
+    /* Barra de tempo (pressão na pergunta) */
+    .barra-tempo {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 6px;
+      background: rgba(255,255,255,0.08); z-index: 25;
+    }
+    .barra-fill {
+      height: 100%; width: 100%; background: #ff4da6;
+      transition: width 15s linear;
+    }
+
+    /* Ecrã a tremer (respostas erradas) */
+    @keyframes treme {
+      0%,100% { transform: translate(0,0); }
+      20% { transform: translate(-8px,4px); }
+      40% { transform: translate(8px,-4px); }
+      60% { transform: translate(-6px,-6px); }
+      80% { transform: translate(6px,6px); }
+    }
+
     {% block extra_css %}{% endblock %}
   </style>
 </head>
@@ -431,8 +490,15 @@
       function pararTimer() {
         if (tid) { clearInterval(tid); tid = null; }
         restantes = 0; pIdx = 0;
-        btnTimer.textContent = "⏲️";
         btnTimer.classList.remove("ativo");
+        atualizarRelogio();   // volta a mostrar as horas
+      }
+      // Quando o temporizador não está ativo, o botão mostra as horas atuais
+      function atualizarRelogio() {
+        if (tid !== null) return;   // se houver contagem a decorrer, ela manda
+        const d = new Date();
+        const p = function (n) { return String(n).padStart(2, "0"); };
+        btnTimer.textContent = "🕒 " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
       }
       function tickTimer() {
         if (--restantes <= 0) {           // chegou a zero → desliga a música
@@ -451,6 +517,9 @@
         btnTimer.classList.add("ativo");
         tid = setInterval(tickTimer, 1000);
       });
+
+      atualizarRelogio();          // mostra logo as horas no botão do topo
+      setInterval(atualizarRelogio, 1000);
 
       idx = Math.floor(Math.random() * NOMES.length);   // primeira faixa aleatória
       carregar();
@@ -501,7 +570,7 @@
       document.querySelectorAll(".fujao").forEach(function (el) {
         let tentativas = 0;
         el.addEventListener("mouseenter", function () {
-          if (tentativas >= 4) return;
+          if (tentativas >= 12) return;   // foge mais tempo antes de se deixar apanhar
           tentativas++;
           const dx = (Math.random() - 0.5) * 240;
           const dy = (Math.random() - 0.5) * 140;
@@ -511,6 +580,88 @@
         });
         el.addEventListener("click", function () { el.style.transform = ""; });
       });
+
+      // 4) Logo "DVD" saltitão
+      const dvd = document.createElement("div");
+      dvd.textContent = "📀";
+      dvd.style.cssText = "position:fixed;left:0;top:0;z-index:55;font-size:2rem;pointer-events:none;";
+      document.body.appendChild(dvd);
+      let dx = 40, dy = 60, vx = 2.2, vy = 1.8;
+      (function moverDvd() {
+        const w = window.innerWidth - 40, h = window.innerHeight - 40;
+        dx += vx; dy += vy;
+        if (dx <= 0 || dx >= w) { vx = -vx; dx = Math.max(0, Math.min(w, dx)); }
+        if (dy <= 0 || dy >= h) { vy = -vy; dy = Math.max(0, Math.min(h, dy)); }
+        dvd.style.transform = "translate(" + dx + "px," + dy + "px)";
+        requestAnimationFrame(moverDvd);
+      })();
+
+      // 5) Olho perseguidor (segue o cursor com atraso)
+      const olho = document.createElement("div");
+      olho.textContent = "👁️";
+      olho.style.cssText = "position:fixed;left:0;top:0;z-index:58;font-size:1.6rem;pointer-events:none;";
+      document.body.appendChild(olho);
+      let mx = window.innerWidth / 2, my = window.innerHeight / 2, ox = mx, oy = my;
+      document.addEventListener("mousemove", function (e) { mx = e.clientX; my = e.clientY; });
+      (function seguir() {
+        ox += (mx - ox) * 0.08; oy += (my - oy) * 0.08;
+        olho.style.transform = "translate(" + (ox - 12) + "px," + (oy - 12) + "px)";
+        requestAnimationFrame(seguir);
+      })();
+
+      // 6) "Boop" a cada clique (som curto, sem ficheiro)
+      let actx = null;
+      document.addEventListener("click", function () {
+        try {
+          actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+          const o = actx.createOscillator(), g = actx.createGain();
+          o.type = "sine"; o.frequency.value = 600; g.gain.value = 0.05;
+          o.connect(g); g.connect(actx.destination);
+          o.start(); o.stop(actx.currentTime + 0.08);
+        } catch (e) {}
+      });
+
+      // 7) Comic Sans aleatório (de vez em quando)
+      setInterval(function () {
+        document.body.style.fontFamily = '"Comic Sans MS","Comic Sans",cursive';
+        setTimeout(function () { document.body.style.fontFamily = ""; }, 4000);
+      }, 22000);
+
+      // 8) Banner de cookies falso (reaparece sempre)
+      const cookie = document.createElement("div");
+      cookie.className = "cookie-falso";
+      cookie.innerHTML = "🍪 Este site usa bolachas (literalmente). <button>Aceitar</button>";
+      document.body.appendChild(cookie);
+      cookie.querySelector("button").addEventListener("click", function (e) {
+        e.stopPropagation();
+        cookie.style.display = "none";
+        setTimeout(function () { cookie.style.display = "flex"; }, 6000);
+      });
+
+      // 9) Frases passivo-agressivas
+      const FRASES = [
+        "Tens a certeza dessa resposta? 🤨",
+        "Hmm... ok.",
+        "Já viste as horas? 🕒",
+        "Não era melhor estudares? 📚",
+        "Eu acreditava em ti. Outrora.",
+        "Continua... eu espero. 🙄",
+      ];
+      const toast = document.createElement("div");
+      toast.className = "toast-pa";
+      document.body.appendChild(toast);
+      setInterval(function () {
+        toast.textContent = FRASES[Math.floor(Math.random() * FRASES.length)];
+        toast.classList.add("ver");
+        setTimeout(function () { toast.classList.remove("ver"); }, 3500);
+      }, 15000);
+
+      // 10) Página de pernas para o ar (roda 180° durante 10 segundos)
+      setInterval(function () {
+        document.body.style.transition = "transform 0.6s ease";
+        document.body.style.transform = "rotate(180deg)";
+        setTimeout(function () { document.body.style.transform = ""; }, 10000);
+      }, 45000);
     })();
   </script>
 

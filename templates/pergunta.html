@@ -21,3 +21,32 @@
   </form>
 </div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    // Loading falso antes da pergunta 🐌
+    const ov = document.createElement("div");
+    ov.className = "fake-load";
+    ov.innerHTML = "<div>🐌 A carregar pergunta...</div>";
+    document.body.appendChild(ov);
+    setTimeout(function () {
+      ov.style.opacity = "0";
+      setTimeout(function () { ov.remove(); }, 400);
+    }, 1600);
+
+    // Pressão: barra de 15s — se esgotar, submete (conta como erro)
+    const form = document.querySelector('form[action="/verificar"]');
+    const barra = document.createElement("div"); barra.className = "barra-tempo";
+    const fill  = document.createElement("div"); fill.className = "barra-fill";
+    barra.appendChild(fill); document.body.appendChild(barra);
+    requestAnimationFrame(function () { fill.style.width = "0%"; });  // anima 100%→0% em 15s
+
+    let enviado = false;
+    if (form) form.addEventListener("submit", function () { enviado = true; });
+    setTimeout(function () {
+      if (form && !enviado) form.submit();   // tempo esgotado → resposta vazia = erro
+    }, 15000);
+  })();
+</script>
+{% endblock %}
