@@ -151,6 +151,72 @@
       color: #ff4da6; font-size: 0.9rem; margin-bottom: 1rem;
     }
 
+    /* ─── Botão de música (fixo, comum a todas as páginas) ─── */
+    .btn-som {
+      position: fixed; bottom: 18px; right: 18px; z-index: 10;
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--cartao); color: white;
+      border: 1px solid rgba(255,255,255,0.15);
+      font-size: 1.3rem; cursor: pointer; padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+      transition: transform 0.15s, background 0.2s;
+    }
+    .btn-som:hover { transform: scale(1.08); background: #1e2d4f; }
+
+    /* Nome (anónimo) da faixa a tocar */
+    .musica-info {
+      position: fixed; bottom: 76px; right: 18px; z-index: 10;
+      background: var(--cartao); color: #ccc; font-size: 0.78rem;
+      padding: 0.4rem 0.75rem; border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.12);
+      max-width: 220px; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .musica-info:empty { display: none; }
+
+    /* Botão do temporizador de desligar (sleep timer) */
+    .btn-timer {
+      position: fixed; bottom: 18px; right: 76px; z-index: 10;
+      height: 48px; min-width: 48px; padding: 0 12px; border-radius: 24px;
+      background: var(--cartao); color: white;
+      border: 1px solid rgba(255,255,255,0.15);
+      font-size: 0.92rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+      transition: transform 0.15s, background 0.2s;
+    }
+    .btn-timer:hover { transform: scale(1.05); background: #1e2d4f; }
+    .btn-timer.ativo { color: #ffe94e; border-color: rgba(255,233,78,0.4); }
+
+    /* Mensagem GRANDE quando tentam desligar antes de tempo */
+    .aviso-grande {
+      position: fixed; inset: 0; z-index: 50;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none; padding: 1rem; text-align: center;
+    }
+    .aviso-grande span {
+      font-size: clamp(2.2rem, 9vw, 5.5rem); font-weight: 900;
+      color: #ff4da6; text-transform: uppercase; line-height: 1.05;
+      text-shadow: 0 6px 26px rgba(0,0,0,0.7);
+      opacity: 0;
+    }
+    .aviso-grande.mostra span { animation: avisoPop 1.5s ease; }
+    @keyframes avisoPop {
+      0%   { opacity: 0; transform: scale(0.5) rotate(-6deg); }
+      18%  { opacity: 1; transform: scale(1.12) rotate(-3deg); }
+      32%  { transform: scale(1) rotate(-3deg); }
+      80%  { opacity: 1; }
+      100% { opacity: 0; transform: scale(1) rotate(-3deg); }
+    }
+    /* Abana o botão quando tentas desligar antes de tempo */
+    @keyframes abana {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    .btn-som.abana { animation: abana 0.3s; }
+
     {% block extra_css %}{% endblock %}
   </style>
 </head>
@@ -177,6 +243,142 @@
     {% block content %}{% endblock %}
   </div>
   {% endblock %}
+
+  <!-- Música de fundo (playlist) — comum a todas as páginas -->
+  <audio id="musica" preload="auto"
+         data-base="{{ url_for('static', filename='audio/') }}"></audio>
+  <div id="aviso" class="aviso-grande"></div>
+  <span id="musicaInfo" class="musica-info"></span>
+  <button id="btnTimer" class="btn-timer" title="Temporizador para desligar">⏲️</button>
+  <button id="btnSom" class="btn-som" title="Ligar/desligar música">🔇</button>
+
+  <script>
+    (function () {
+      // Nomes ANÓNIMOS das faixas → ficheiros musica1.mp3 ... musicaN.mp3
+      const NOMES = [
+        "Anónimo #1",
+        "Faixa Sem Nome",
+        "Desconhecido",
+        "???",
+        "Misteriosa",
+        "Faixa Oculta",
+      ];
+
+      const audio = document.getElementById("musica");
+      const btn   = document.getElementById("btnSom");
+      const info  = document.getElementById("musicaInfo");
+      const aviso = document.getElementById("aviso");
+      audio.volume = 0.4;
+
+      function mostrarAviso(txt) {
+        aviso.innerHTML = "<span>" + txt + "</span>";
+        aviso.classList.remove("mostra");
+        void aviso.offsetWidth;     // reinicia a animação
+        aviso.classList.add("mostra");
+      }
+
+      let idx = 0;
+      let podeDesligar = false;   // só fica true depois de 1 música tocar inteira
+      let erros = 0;
+
+      function fmt(s) {
+        s = Math.max(0, Math.floor(s));
+        return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+      }
+      function carregar() {
+        audio.src = audio.dataset.base + "musica" + (idx + 1) + ".mp3";
+        info.textContent = "♪ " + NOMES[idx % NOMES.length];
+      }
+      function atualizarIcone() {
+        if (audio.paused)        btn.textContent = "🔇";
+        else if (!podeDesligar)  btn.textContent = "🔒";  // bloqueado
+        else                     btn.textContent = "🔊";
+      }
+      function tocar() {
+        audio.play().then(() => { erros = 0; atualizarIcone(); }).catch(() => {});
+      }
+      function proxima() {
+        // Completamente aleatório (pode repetir a mesma faixa)
+        idx = Math.floor(Math.random() * NOMES.length);
+        carregar();
+        tocar();
+      }
+
+      // Contador: enquanto está bloqueado, mostra quanto falta para poder desligar
+      audio.addEventListener("timeupdate", function () {
+        if (!audio.paused && !podeDesligar && audio.duration) {
+          const resta = audio.duration - audio.currentTime;
+          info.textContent = "🔒 " + NOMES[idx % NOMES.length] + " — faltam " + fmt(resta);
+        }
+      });
+
+      // Quando uma música acaba → já tocou 1 vez inteira → desbloqueia e passa à próxima
+      audio.addEventListener("ended", function () {
+        podeDesligar = true;
+        proxima();
+      });
+      // Se um ficheiro não existir, salta para o seguinte (sem ciclo infinito)
+      audio.addEventListener("error", function () {
+        if (++erros > NOMES.length) { audio.pause(); info.textContent = ""; atualizarIcone(); return; }
+        idx = (idx + 1) % NOMES.length;
+        carregar();
+        tocar();
+      });
+
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (audio.paused) {
+          // LIGAR → bloqueia até tocar pelo menos 1 música inteira
+          podeDesligar = false;
+          if (!audio.src) carregar();
+          tocar();
+        } else if (podeDesligar) {
+          // DESLIGAR (já permitido)
+          audio.pause();
+          atualizarIcone();
+        } else {
+          // Tentou desligar cedo demais → abana o botão e avisa em grande
+          btn.classList.remove("abana");
+          void btn.offsetWidth;          // reinicia a animação
+          btn.classList.add("abana");
+          mostrarAviso("Agora aguenta-te bot 😤");
+        }
+      });
+
+      // ─── Temporizador de desligar (sleep timer) ───
+      const btnTimer = document.getElementById("btnTimer");
+      const PRESETS  = [0, 5, 10, 15, 30];   // minutos (0 = desligado)
+      let pIdx = 0, restantes = 0, tid = null;
+
+      function pararTimer() {
+        if (tid) { clearInterval(tid); tid = null; }
+        restantes = 0; pIdx = 0;
+        btnTimer.textContent = "⏲️";
+        btnTimer.classList.remove("ativo");
+      }
+      function tickTimer() {
+        if (--restantes <= 0) {           // chegou a zero → desliga a música
+          audio.pause(); atualizarIcone(); pararTimer(); return;
+        }
+        btnTimer.textContent = "⏲️ " + fmt(restantes);
+      }
+      btnTimer.addEventListener("click", function (e) {
+        e.stopPropagation();
+        if (tid) { clearInterval(tid); tid = null; }
+        pIdx = (pIdx + 1) % PRESETS.length;
+        const min = PRESETS[pIdx];
+        if (min === 0) { pararTimer(); return; }   // ciclo volta a desligado
+        restantes = min * 60;
+        btnTimer.textContent = "⏲️ " + fmt(restantes);
+        btnTimer.classList.add("ativo");
+        tid = setInterval(tickTimer, 1000);
+      });
+
+      idx = Math.floor(Math.random() * NOMES.length);   // primeira faixa aleatória
+      carregar();
+      tocar();   // tenta arrancar (a maioria dos browsers só deixa após interação)
+    })();
+  </script>
 
 </body>
 </html>
