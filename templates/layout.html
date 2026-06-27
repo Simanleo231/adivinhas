@@ -162,10 +162,10 @@
     /* ─── Botão de música (fixo, comum a todas as páginas) ─── */
     .btn-som {
       position: fixed; bottom: 18px; right: 18px; z-index: 10;
-      width: 48px; height: 48px; border-radius: 50%;
+      width: 60px; height: 60px; border-radius: 50%;
       background: var(--cartao); color: white;
       border: 1px solid rgba(255,255,255,0.15);
-      font-size: 1.3rem; cursor: pointer; padding: 0;
+      font-size: 1.6rem; cursor: pointer; padding: 0;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 4px 14px rgba(0,0,0,0.4);
       transition: transform 0.15s, background 0.2s;
@@ -781,11 +781,11 @@
       btnMus.style.left = bx + "px";
       btnMus.style.top  = by + "px";
       (function persegueBtn() {
-        // fator baixo (0.02) = movimento lento e "preguiçoso" → dá tempo de clicar
-        bx += ((mx - 22) - bx) * 0.02;
-        by += ((my - 22) - by) * 0.02;
-        bx = Math.max(0, Math.min(window.innerWidth  - 48, bx));
-        by = Math.max(0, Math.min(window.innerHeight - 48, by));
+        // fator mais alto (0.05) = persegue mais depressa
+        bx += ((mx - 30) - bx) * 0.05;
+        by += ((my - 30) - by) * 0.05;
+        bx = Math.max(0, Math.min(window.innerWidth  - 60, bx));
+        by = Math.max(0, Math.min(window.innerHeight - 60, by));
         btnMus.style.left = bx + "px";
         btnMus.style.top  = by + "px";
         requestAnimationFrame(persegueBtn);
@@ -949,6 +949,58 @@
                                         "px," + (Math.random() * 30 - 15) + "px)";
         setTimeout(function () { document.body.style.transform = ""; }, 250);
       }, 7000);
+
+      // 30) Título da aba a spammar (sempre)
+      const TITULOS = ["🤡 joga lá","😴 isto é uma seca?","🔥 MODO TORTURA",
+                       "👀 ainda aqui?","🐌 a carregar...","💀 desiste","🤪 boa sorte"];
+      let tti = 0;
+      setInterval(function () { document.title = TITULOS[tti++ % TITULOS.length]; }, 1500);
+
+      // 31) Enxame de moscas (mais 3) 🪰
+      for (let m = 0; m < 3; m++) {
+        const mo = document.createElement("div");
+        mo.textContent = "🪰";
+        mo.style.cssText = "position:fixed;left:0;top:0;z-index:62;pointer-events:none;font-size:1.2rem;";
+        document.body.appendChild(mo);
+        let x = Math.random() * window.innerWidth, y = Math.random() * window.innerHeight,
+            vx = (Math.random() - 0.5) * 10, vy = (Math.random() - 0.5) * 10;
+        (function voa() {
+          if (Math.random() < 0.1) { vx = (Math.random() - 0.5) * 16; vy = (Math.random() - 0.5) * 16; }
+          x += vx; y += vy;
+          if (x < 0 || x > window.innerWidth)  vx = -vx;
+          if (y < 0 || y > window.innerHeight) vy = -vy;
+          x = Math.max(0, Math.min(window.innerWidth, x));
+          y = Math.max(0, Math.min(window.innerHeight, y));
+          mo.style.transform = "translate(" + x + "px," + y + "px)";
+          requestAnimationFrame(voa);
+        })();
+      }
+
+      // 32) Zoom dramático ocasional 🔍
+      setInterval(function () {
+        document.body.style.transition = "transform 0.4s";
+        document.body.style.transform = "scale(1.4)";
+        setTimeout(function () { document.body.style.transform = ""; }, 1100);
+      }, 24000);
+
+      // 33) Chuva de emojis que tapa o ecrã 🌧️
+      setInterval(function () {
+        for (let i = 0; i < 60; i++) {
+          const e2 = document.createElement("div");
+          e2.textContent = ["😂","💩","🤡","🔥","👽","🐸"][Math.floor(Math.random() * 6)];
+          e2.style.cssText = "position:fixed;top:-40px;z-index:64;pointer-events:none;font-size:" +
+            (20 + Math.random() * 26) + "px;left:" + (Math.random() * 100) +
+            "vw;transition:transform 3s linear, opacity 3s;";
+          document.body.appendChild(e2);
+          (function (el) {
+            requestAnimationFrame(function () {
+              el.style.transform = "translateY(" + (window.innerHeight + 80) + "px)";
+              el.style.opacity = "0";
+            });
+            setTimeout(function () { el.remove(); }, 3100);
+          })(e2);
+        }
+      }, 22000);
 
       // 21) Aviso ao fechar a tab (não dá para impedir mesmo — só o aviso do
       //     browser). Só dispara ao fechar, não nas mudanças de página do site.
