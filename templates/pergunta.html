@@ -85,13 +85,6 @@
       setTimeout(function () { h2.style.transition = "transform 0.6s"; h2.style.transform = "scaleX(1)"; }, 1200);
     }
 
-    // 🗣️ Voz a ler a pergunta (estranha de propósito)
-    try {
-      const u = new SpeechSynthesisUtterance(texto);
-      u.lang = "pt-PT"; u.rate = 0.9; u.pitch = 1.4;
-      setTimeout(function () { speechSynthesis.speak(u); }, 800);
-    } catch (e) {}
-
     // 🎰 Pontuação estilo slot-machine
     const alvoEl = document.getElementById("pontosVal");
     if (alvoEl) {

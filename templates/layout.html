@@ -603,7 +603,7 @@
       document.querySelectorAll(".fujao").forEach(function (el) {
         let tentativas = 0;
         el.addEventListener("mouseenter", function () {
-          if (tentativas >= 12) return;   // foge mais tempo antes de se deixar apanhar
+          if (tentativas >= 30) return;   // foge mais tempo antes de se deixar apanhar
           tentativas++;
           const dx = (Math.random() - 0.5) * 240;
           const dy = (Math.random() - 0.5) * 140;
