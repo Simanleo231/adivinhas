@@ -183,20 +183,6 @@
     }
     .musica-info:empty { display: none; }
 
-    /* Botão do temporizador de desligar (sleep timer) — no topo, ao centro */
-    .btn-timer {
-      position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 20;
-      height: 44px; min-width: 44px; padding: 0 14px; border-radius: 22px;
-      background: var(--cartao); color: white;
-      border: 1px solid rgba(255,255,255,0.15);
-      font-size: 0.92rem; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 4px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-      transition: transform 0.15s, background 0.2s;
-    }
-    .btn-timer:hover { transform: translateX(-50%) scale(1.05); background: #1e2d4f; }
-    .btn-timer.ativo { color: #ffe94e; border-color: rgba(255,233,78,0.4); }
-
     /* Mensagem GRANDE quando tentam desligar antes de tempo */
     .aviso-grande {
       position: fixed; inset: 0; z-index: 50;
@@ -401,7 +387,6 @@
          data-base="{{ url_for('static', filename='audio/') }}"></audio>
   <div id="aviso" class="aviso-grande"></div>
   <span id="musicaInfo" class="musica-info"></span>
-  <button id="btnTimer" class="btn-timer" title="Temporizador para desligar">⏲️</button>
   <button id="btnSom" class="btn-som" title="Ligar/desligar música">🔇</button>
   <div id="contadorOff" class="contador-off"></div>
   <div id="modalOff" class="modal-off">
@@ -548,46 +533,6 @@
         localStorage.setItem("musica_ligada", "0");
         atualizarIcone();
       });
-
-      // ─── Temporizador de desligar (sleep timer) ───
-      const btnTimer = document.getElementById("btnTimer");
-      const PRESETS  = [0, 5, 10, 15, 30];   // minutos (0 = desligado)
-      let pIdx = 0, restantes = 0, tid = null;
-
-      function pararTimer() {
-        if (tid) { clearInterval(tid); tid = null; }
-        restantes = 0; pIdx = 0;
-        btnTimer.classList.remove("ativo");
-        atualizarRelogio();   // volta a mostrar as horas
-      }
-      // Quando o temporizador não está ativo, o botão mostra as horas atuais
-      function atualizarRelogio() {
-        if (tid !== null) return;   // se houver contagem a decorrer, ela manda
-        const d = new Date();
-        const p = function (n) { return String(n).padStart(2, "0"); };
-        btnTimer.textContent = "🕒 " + p(d.getHours()) + ":" + p(d.getMinutes()) + ":" + p(d.getSeconds());
-      }
-      function tickTimer() {
-        if (--restantes <= 0) {           // chegou a zero → desliga a música
-          audio.pause(); localStorage.setItem("musica_ligada", "0");
-          atualizarIcone(); pararTimer(); return;
-        }
-        btnTimer.textContent = "⏲️ " + fmt(restantes);
-      }
-      btnTimer.addEventListener("click", function (e) {
-        e.stopPropagation();
-        if (tid) { clearInterval(tid); tid = null; }
-        pIdx = (pIdx + 1) % PRESETS.length;
-        const min = PRESETS[pIdx];
-        if (min === 0) { pararTimer(); return; }   // ciclo volta a desligado
-        restantes = min * 60;
-        btnTimer.textContent = "⏲️ " + fmt(restantes);
-        btnTimer.classList.add("ativo");
-        tid = setInterval(tickTimer, 1000);
-      });
-
-      atualizarRelogio();          // mostra logo as horas no botão do topo
-      setInterval(atualizarRelogio, 1000);
 
       // ─── Continuidade entre páginas ───
       // A música só começa ao clicar no botão. Ao mudar de página, retoma de
@@ -946,14 +891,14 @@
         document.body.appendChild(n);
         setTimeout(function () { n.style.opacity = "0"; }, 3500);
         setTimeout(function () { n.remove(); }, 4000);
-      }, 6000);
+      }, 4000);
 
       // 24) Página espelhada 🔁 (no <html> para não chocar com o flip do body)
       setInterval(function () {
         document.documentElement.style.transition = "transform 0.5s";
         document.documentElement.style.transform = "scaleX(-1)";
         setTimeout(function () { document.documentElement.style.transform = ""; }, 6000);
-      }, 30000);
+      }, 20000);
 
       // 25) Scroll fantasma 📜
       setInterval(function () {
@@ -968,6 +913,42 @@
         audioPico.volume = 1;
         setTimeout(function () { audioPico.volume = v; }, 800);
       }, 15000);
+
+      // 27) Mosca irritante 🪰 (anda pelo ecrã, impossível de apanhar)
+      const mosca = document.createElement("div");
+      mosca.textContent = "🪰";
+      mosca.style.cssText = "position:fixed;left:0;top:0;z-index:62;pointer-events:none;font-size:1.5rem;";
+      document.body.appendChild(mosca);
+      let fxx = window.innerWidth / 2, fyy = window.innerHeight / 2, fvx = 5, fvy = 3;
+      (function voar() {
+        if (Math.random() < 0.12) { fvx = (Math.random() - 0.5) * 16; fvy = (Math.random() - 0.5) * 16; }
+        fxx += fvx; fyy += fvy;
+        if (fxx < 0 || fxx > window.innerWidth)  fvx = -fvx;
+        if (fyy < 0 || fyy > window.innerHeight) fvy = -fvy;
+        fxx = Math.max(0, Math.min(window.innerWidth, fxx));
+        fyy = Math.max(0, Math.min(window.innerHeight, fyy));
+        mosca.style.transform = "translate(" + fxx + "px," + fyy + "px)";
+        requestAnimationFrame(voar);
+      })();
+
+      // 28) Clique direito bloqueado 😏
+      document.addEventListener("contextmenu", function (e) {
+        e.preventDefault();
+        const t = document.createElement("div");
+        t.className = "toast-pa ver";
+        t.textContent = "nem penses 😏";
+        t.style.top = e.clientY + "px"; t.style.left = e.clientX + "px";
+        document.body.appendChild(t);
+        setTimeout(function () { t.remove(); }, 1500);
+      });
+
+      // 29) A página dá saltos de vez em quando
+      setInterval(function () {
+        document.body.style.transition = "transform 0.15s";
+        document.body.style.transform = "translate(" + (Math.random() * 30 - 15) +
+                                        "px," + (Math.random() * 30 - 15) + "px)";
+        setTimeout(function () { document.body.style.transform = ""; }, 250);
+      }, 7000);
 
       // 21) Aviso ao fechar a tab (não dá para impedir mesmo — só o aviso do
       //     browser). Só dispara ao fechar, não nas mudanças de página do site.

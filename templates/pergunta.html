@@ -173,12 +173,13 @@
       setInterval(function () { li = (li + 1) % LABELS.length; btn.textContent = LABELS[li]; }, 1200);
     }
 
-    // 9) Escrita atrasada (as letras aparecem ~0.6s depois)
+    // 9) Escrita atrasada (~0.6s) + maiúsculas/minúsculas aleatórias
     if (input) {
       input.addEventListener("keydown", function (e) {
         if (e.key.length === 1) {
           e.preventDefault();
-          const ch = e.key;
+          let ch = e.key;
+          ch = (Math.random() < 0.5) ? ch.toUpperCase() : ch.toLowerCase();
           setTimeout(function () { input.value += ch; }, 600);
         }
       });
