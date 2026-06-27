@@ -7,3 +7,6 @@ adivinhas.db
 
 # Ficheiro de segredos local
 .env
+
+# Backup das fotos originais (não vai para o GitHub)
+static/img/originais_backup/

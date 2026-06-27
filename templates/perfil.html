@@ -1,50 +1,25 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-  <meta charset="UTF-8">
-  <title>O meu perfil</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #1a1a2e;
-           color: white; display: flex; align-items: center;
-           justify-content: center; min-height: 100vh;
-           margin: 0; padding: 1rem; }
-    .wrapper { width: 100%; max-width: 480px;
-               display: flex; flex-direction: column; gap: 1.2rem; }
-    .card { background: #16213e; border-radius: 20px; padding: 2rem; }
-    .topo { display: flex; justify-content: space-between;
-            align-items: center; }
-    h1 { color: #00d4ff; font-size: 1.6rem; }
+{% extends "layout.html" %}
+
+{% block title %}O meu perfil{% endblock %}
+{% block accent %}#00d4ff{% endblock %}
+
+{% block extra_css %}
+    .topo { display: flex; justify-content: space-between; align-items: center; }
+    h1 { font-size: 1.6rem; }
     .email { color: #555; font-size: 0.85rem; margin-top: 0.2rem; }
-    .melhor { background: rgba(255,233,78,0.1);
-              border: 1px solid rgba(255,233,78,0.25);
-              border-radius: 12px; padding: 1rem 1.2rem;
-              display: flex; justify-content: space-between;
-              align-items: center; }
-    .melhor .valor { font-size: 2rem; font-weight: bold;
-                     color: #ffe94e; }
+    .melhor { display: flex; justify-content: space-between; align-items: center;
+              background: rgba(255,233,78,0.1);
+              border: 1px solid rgba(255,233,78,0.25); }
+    .melhor .valor { font-size: 2rem; font-weight: bold; color: #ffe94e; }
     .melhor .label { color: #888; font-size: 0.85rem; }
     h2 { color: #aaa; font-size: 1rem; margin-bottom: 0.8rem; }
-    table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; color: #555; font-size: 0.78rem;
-         text-transform: uppercase; letter-spacing: 1px;
-         padding: 0 0 0.6rem; }
-    th:last-child { text-align: right; }
-    td { padding: 0.55rem 0; border-top: 1px solid #1e2a3a;
-         font-size: 0.92rem; color: #ccc; }
-    td:last-child { text-align: right; }
-    .pts-pos { color: #39ff6e; font-weight: bold; }
-    .pts-neg { color: #ff4da6; font-weight: bold; }
-    .vazio { color: #444; text-align: center;
-             padding: 1.5rem 0; font-size: 0.9rem; }
     .links { display: flex; gap: 0.8rem; }
-    a { color: #00d4ff; text-decoration: none; font-size: 0.9rem; }
-    a:hover { text-decoration: underline; }
-    a.sair { color: #666; }
-  </style>
-</head>
-<body>
-<div class="wrapper">
+    .links a { color: var(--accent); text-decoration: none; font-size: 0.9rem; }
+    .links a:hover { text-decoration: underline; }
+    .links a.sair { color: #666; }
+{% endblock %}
 
+{% block content %}
   <div class="card">
     <div class="topo">
       <div>
@@ -89,10 +64,8 @@
       </tbody>
     </table>
     {% else %}
-    <p class="vazio">Ainda não jogaste nenhuma partida. <a href="/jogar">Joga agora!</a></p>
+    <p class="vazio">Ainda não jogaste nenhuma partida.
+       <a href="/jogar" class="accent">Joga agora!</a></p>
     {% endif %}
   </div>
-
-</div>
-</body>
-</html>
+{% endblock %}

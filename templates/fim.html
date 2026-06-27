@@ -1,73 +1,24 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <title>Fim</title>
+{% extends "layout.html" %}
 
-    <style>
+{% block title %}Fim{% endblock %}
+{% block accent %}#ff6b35{% endblock %}
 
-        body{
-            font-family: Arial;
-            background: #1a1a2e;
-            color: white;
+{% block extra_css %}
+    .guardado { color: var(--suave); margin: 1rem 0; font-size: 0.9rem; }
+{% endblock %}
 
-            display: flex;
-            justify-content: center;
-            align-items: center;
+{% block content %}
+<div class="card center">
+  <h1>🏁 Jogo Terminado</h1>
 
-            min-height: 100vh;
-            margin: 0;
-        }
+  <div class="guardado">
+    💾 Score guardado na conta de
+    <strong>{{ current_user.nome }}</strong>!
+    <a href="/perfil" class="accent">Ver perfil →</a>
+  </div>
 
-        .card{
-            background: #16213e;
+  <h3>Máximo possível: {{ total * 100 }}</h3>
 
-            padding: 40px;
-
-            border-radius: 20px;
-
-            width: 500px;
-
-            text-align: center;
-        }
-
-        a{
-            display: inline-block;
-
-            margin-top: 20px;
-
-            background: orange;
-            color: white;
-
-            padding: 15px 30px;
-
-            text-decoration: none;
-
-            border-radius: 10px;
-        }
-
-    </style>
-
-</head>
-<body>
-
-<div class="card">
-
-    <h1>🏁 Jogo Terminado</h1>
-
-    <div class="guardado">
-      💾 Score guardado na conta de
-      <strong>{{ current_user.nome }}</strong>!
-      <a href="/perfil">Ver perfil →</a>
-    </div>
-
-    <h3>Máximo possível: {{ total * 100 }}</h3>
-
-    <a href="/jogar">
-        Jogar outra vez
-    </a>
-
+  <a href="/jogar" class="btn">Jogar outra vez</a>
 </div>
-
-</body>
-</html>
+{% endblock %}

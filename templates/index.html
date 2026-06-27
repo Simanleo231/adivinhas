@@ -1,74 +1,15 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <title>Adivinhas</title>
+{% extends "layout.html" %}
 
-    <style>
-        .nav {
-              display: flex; justify-content: space-between;
-              align-items: center; background: #16213e;
-              border-radius: 14px; padding: 0.8rem 1.2rem;
-              font-size: 0.9rem;
-            }
-            .nav a {
-              color: #aaa; text-decoration: none;
-              margin-left: 1rem; transition: color 0.2s;
-            }
-            .nav a:hover { color: white; }
-            .btn {
-              display: block; background: #ff6b35; color: white;
-              padding: 0.9rem; border-radius: 10px; text-align: center;
-              text-decoration: none; font-weight: bold;
-              font-size: 1rem; margin-bottom: 0.8rem;
-            }
+{% block title %}Adivinhas{% endblock %}
+{% block accent %}#ff6b35{% endblock %}
 
-        body{
-            font-family: Arial;
-            background: #1a1a2e;
-            color: white;
+{% block extra_css %}
+    .posicao { font-weight: bold; }
+    .lb-titulo { color: var(--accent); font-weight: bold; margin-bottom: 1rem; }
+    .info { color: var(--suave); font-size: 0.85rem; margin-top: 1rem; }
+{% endblock %}
 
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-            min-height: 100vh;
-            margin: 0;
-        }
-
-        .card{
-            background: #16213e;
-
-            padding: 40px;
-
-            border-radius: 20px;
-
-            width: 400px;
-
-            text-align: center;
-        }
-
-        a{
-            display: inline-block;
-
-            margin-top: 20px;
-
-            background: orange;
-            color: white;
-
-            padding: 15px 30px;
-
-            text-decoration: none;
-
-            border-radius: 10px;
-        }
-
-    </style>
-
-</head>
-<body>
-<div class="wrapper">
-
+{% block content %}
   <!-- Barra de utilizador -->
   <div class="nav">
     <span>👋 Olá, <strong>{{ current_user.nome }}</strong></span>
@@ -78,15 +19,15 @@
     </div>
   </div>
 
-  <!-- Bloco do jogo: sem formulário de nome -->
-  <div class="card">
+  <!-- Bloco do jogo -->
+  <div class="card center">
     <h1>🧩 Adivinhas</h1>
-    <p class="subtitulo">Consegues entrar no top 5?</p>
+    <p class="sub">Consegues entrar no top 5?</p>
     <a href="/jogar" class="btn">🚀 Iniciar Jogo</a>
     <p class="info">5 perguntas · +100 acerto · −50 erro</p>
   </div>
 
-  <!-- Leaderboard (igual à Parte 3) -->
+  <!-- Leaderboard -->
   <div class="card">
     <div class="lb-titulo">🏆 Top 5 — Melhores de sempre</div>
     {% if top5 %}
@@ -114,7 +55,4 @@
     <p class="vazio">Ainda não há recordes. Sê o primeiro! 🎯</p>
     {% endif %}
   </div>
-
-</div>
-</body>
-</html>
+{% endblock %}
