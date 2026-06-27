@@ -9,6 +9,15 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import os
 import random, copy
+import unicodedata
+
+
+def normalizar(texto):
+    """Minúsculas, sem espaços nas pontas e sem acentos —
+    para comparar respostas de forma justa (ex.: 'mercurio' == 'mercúrio')."""
+    texto = texto.lower().strip()
+    sem_acentos = unicodedata.normalize("NFD", texto)
+    return "".join(c for c in sem_acentos if unicodedata.category(c) != "Mn")
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY","super-chave-secreta-123")
@@ -76,6 +85,7 @@ with app.app_context():
     db.create_all()
 
 ADIVINHAS = [
+    # ─── Cultura geral ───────────────────────────────
     {"pergunta": "Qual é o animal mais rápido do mundo?",
      "resposta": "guepardo"},
     {"pergunta": "Quantas cores tem o arco-íris?",
@@ -86,6 +96,33 @@ ADIVINHAS = [
      "resposta": "áfrica"},
     {"pergunta": "Qual é o maior oceano do mundo?",
      "resposta": "pacífico"},
+    {"pergunta": "Qual é a capital de Portugal?",
+     "resposta": "lisboa"},
+    {"pergunta": "Qual é o maior planeta do sistema solar?",
+     "resposta": "júpiter"},
+    {"pergunta": "Quantos lados tem um quadrado?",
+     "resposta": "quatro"},
+    {"pergunta": "Quem é considerado o rei da selva?",
+     "resposta": "leão"},
+    {"pergunta": "Qual é o metal precioso de cor amarela?",
+     "resposta": "ouro"},
+
+    # ─── Charadas / piadas 😄 ─────────────────────────
+    {"pergunta": "🤔 O que é que quanto mais se tira, maior fica?",
+     "resposta": "buraco"},
+    {"pergunta": "🤔 O que é que tem dentes mas não morde?",
+     "resposta": "pente"},
+    {"pergunta": "🤔 O que é que cai em pé e corre deitado?",
+     "resposta": "chuva"},
+    {"pergunta": "🤔 Sou alto quando jovem e baixo quando velho. O que sou?",
+     "resposta": "vela"},
+    {"pergunta": "🤔 O que é que tem cidades mas não tem casas, "
+                 "tem montanhas mas não tem árvores?",
+     "resposta": "mapa"},
+    {"pergunta": "😂 Qual é o chá que não se bebe? (dica: pões na cabeça)",
+     "resposta": "chapéu"},
+    {"pergunta": "😂 O que é que está sempre no canto mas dá a volta ao mundo?",
+     "resposta": "selo"},
 ]
 
 # ─── ROTA: Registo ────────────────────────────────
@@ -186,13 +223,18 @@ def pergunta():
 @app.route("/verificar", methods=["POST"])
 @login_required
 def verificar():
-    resposta_user = request.form["resposta"].lower().strip()
-    indice        = session.get("indice", 0)
-    lista         = session.get("adivinhas", [])
+    indice = session.get("indice", 0)
+    lista  = session.get("adivinhas", [])
+
+    # Sessão expirada / sem jogo a decorrer → recomeça em vez de rebentar
+    if not lista or indice >= len(lista):
+        return redirect(url_for("jogar"))
+
+    resposta_user = request.form.get("resposta", "")
     resp_correta  = lista[indice]["resposta"]
-    acertou       = resposta_user == resp_correta
-    session["pontuacao"] += 100 if acertou else -50
-    session["indice"]    += 1
+    acertou       = normalizar(resposta_user) == normalizar(resp_correta)
+    session["pontuacao"] = session.get("pontuacao", 0) + (100 if acertou else -50)
+    session["indice"]    = indice + 1
     session.modified = True
     proxima = session["indice"] < len(lista)
     return render_template(
@@ -210,6 +252,11 @@ def verificar():
 @app.route("/fim")
 @login_required
 def fim():
+    # Sem jogo a terminar (ex.: refresh depois de já guardar) → volta ao início.
+    # Evita gravar a mesma pontuação várias vezes no leaderboard.
+    if "adivinhas" not in session:
+        return redirect(url_for("inicio"))
+
     pontuacao = session.get("pontuacao", 0)
     total     = len(session.get("adivinhas", []))
 
@@ -218,6 +265,11 @@ def fim():
                         utilizador_id=current_user.id)
     db.session.add(registo)
     db.session.commit()
+
+    # Limpar o jogo da sessão para um refresh não voltar a guardar
+    session.pop("adivinhas", None)
+    session.pop("indice", None)
+    session.pop("pontuacao", None)
 
     return render_template("fim.html",
                            pontuacao=pontuacao,

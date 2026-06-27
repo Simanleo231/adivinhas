@@ -21,3 +21,28 @@
   {% endif %}
 </div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+  // Chuva de confettis a cada resultado (mesmo nas erradas 😈)
+  (function () {
+    const E = ["🎉","🎊","⭐","✨","🔥","💥","🥳"];
+    for (let i = 0; i < 45; i++) {
+      const c = document.createElement("div");
+      c.textContent = E[Math.floor(Math.random() * E.length)];
+      c.style.cssText =
+        "position:fixed;top:-40px;z-index:70;pointer-events:none;" +
+        "font-size:" + (16 + Math.random() * 22) + "px;" +
+        "left:" + (Math.random() * 100) + "vw;" +
+        "transition:transform 2.6s linear, opacity 2.6s linear;";
+      document.body.appendChild(c);
+      requestAnimationFrame(function () {
+        c.style.transform = "translateY(" + (window.innerHeight + 80) + "px) rotate(" +
+                            (Math.random() * 720 - 360) + "deg)";
+        c.style.opacity = "0";
+      });
+      setTimeout(function () { c.remove(); }, 2700);
+    }
+  })();
+</script>
+{% endblock %}

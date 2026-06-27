@@ -175,10 +175,10 @@
     }
     .musica-info:empty { display: none; }
 
-    /* Botão do temporizador de desligar (sleep timer) */
+    /* Botão do temporizador de desligar (sleep timer) — no topo, ao centro */
     .btn-timer {
-      position: fixed; bottom: 18px; right: 76px; z-index: 10;
-      height: 48px; min-width: 48px; padding: 0 12px; border-radius: 24px;
+      position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 20;
+      height: 44px; min-width: 44px; padding: 0 14px; border-radius: 22px;
       background: var(--cartao); color: white;
       border: 1px solid rgba(255,255,255,0.15);
       font-size: 0.92rem; cursor: pointer;
@@ -186,7 +186,7 @@
       box-shadow: 0 4px 14px rgba(0,0,0,0.4);
       transition: transform 0.15s, background 0.2s;
     }
-    .btn-timer:hover { transform: scale(1.05); background: #1e2d4f; }
+    .btn-timer:hover { transform: translateX(-50%) scale(1.05); background: #1e2d4f; }
     .btn-timer.ativo { color: #ffe94e; border-color: rgba(255,233,78,0.4); }
 
     /* Mensagem GRANDE quando tentam desligar antes de tempo */
@@ -216,6 +216,44 @@
       75% { transform: translateX(5px); }
     }
     .btn-som.abana { animation: abana 0.3s; }
+
+    /* Rasto de emojis a seguir o rato */
+    .rasto {
+      position: fixed; pointer-events: none; z-index: 60; font-size: 1.2rem;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    /* Contador de tentativas de desligar */
+    .contador-off {
+      position: fixed; bottom: 18px; left: 18px; z-index: 20;
+      background: var(--cartao); color: #ffb3d9; font-size: 0.8rem;
+      padding: 0.4rem 0.75rem; border-radius: 20px;
+      border: 1px solid rgba(255,77,166,0.3);
+    }
+    .contador-off:empty { display: none; }
+
+    /* Popup "Tens a certeza?" ao desligar */
+    .modal-off {
+      position: fixed; inset: 0; z-index: 80; display: none;
+      align-items: center; justify-content: center; background: rgba(0,0,0,0.55);
+    }
+    .modal-off.mostra { display: flex; }
+    .modal-cx {
+      background: var(--cartao); border-radius: 18px; padding: 2rem;
+      text-align: center; max-width: 320px; width: 90%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    }
+    .modal-cx p { margin: 0 0 1.2rem; font-size: 1.05rem; }
+    .modal-nao {
+      background: #ff4da6; color: white; border: none; cursor: pointer;
+      font-weight: bold; font-size: 1.3rem; padding: 1rem 2rem;
+      border-radius: 12px; width: 100%; margin: 0;
+    }
+    .modal-sim {
+      display: inline-block; margin-top: 0.9rem; color: #555;
+      font-size: 0.75rem; text-decoration: underline; cursor: pointer;
+    }
 
     {% block extra_css %}{% endblock %}
   </style>
@@ -251,6 +289,14 @@
   <span id="musicaInfo" class="musica-info"></span>
   <button id="btnTimer" class="btn-timer" title="Temporizador para desligar">⏲️</button>
   <button id="btnSom" class="btn-som" title="Ligar/desligar música">🔇</button>
+  <div id="contadorOff" class="contador-off"></div>
+  <div id="modalOff" class="modal-off">
+    <div class="modal-cx">
+      <p>Tens mesmo a certeza que queres desligar? 😢</p>
+      <button id="modalNao" class="modal-nao">NÃO!</button>
+      <div><a id="modalSim" class="modal-sim">desligar mesmo assim</a></div>
+    </div>
+  </div>
 
   <script>
     (function () {
@@ -268,13 +314,30 @@
       const btn   = document.getElementById("btnSom");
       const info  = document.getElementById("musicaInfo");
       const aviso = document.getElementById("aviso");
+      const contadorOff = document.getElementById("contadorOff");
+      const modalOff    = document.getElementById("modalOff");
+      let tentativasOff = 0;
       audio.volume = 0.4;
 
-      function mostrarAviso(txt) {
-        aviso.innerHTML = "<span>" + txt + "</span>";
+      function mostrarAviso(txt, tamanho) {
+        aviso.innerHTML = "<span" + (tamanho ? " style='font-size:" + tamanho + "'" : "") +
+                          ">" + txt + "</span>";
         aviso.classList.remove("mostra");
         void aviso.offsetWidth;     // reinicia a animação
         aviso.classList.add("mostra");
+      }
+      // Mostra o aviso 3x, cada vez maior
+      function avisoCrescente(txt) {
+        const tam = ["clamp(2rem,8vw,4rem)",
+                     "clamp(2.6rem,11vw,5.5rem)",
+                     "clamp(3.4rem,15vw,8rem)"];
+        let i = 0;
+        (function passo() {
+          if (i >= tam.length) return;
+          mostrarAviso(txt, tam[i]);
+          i++;
+          setTimeout(passo, 480);
+        })();
       }
 
       let idx = 0;
@@ -300,6 +363,7 @@
       function proxima() {
         // Completamente aleatório (pode repetir a mesma faixa)
         idx = Math.floor(Math.random() * NOMES.length);
+        audio.volume = Math.min(1, audio.volume + 0.05);  // sobe 5% a cada faixa 😈
         carregar();
         tocar();
       }
@@ -333,16 +397,30 @@
           if (!audio.src) carregar();
           tocar();
         } else if (podeDesligar) {
-          // DESLIGAR (já permitido)
-          audio.pause();
-          atualizarIcone();
+          // DESLIGAR (já permitido) → mas primeiro... tens a certeza? 😏
+          modalOff.classList.add("mostra");
         } else {
-          // Tentou desligar cedo demais → abana o botão e avisa em grande
+          // Tentou desligar cedo demais → abana, conta e avisa em grande (3x)
           btn.classList.remove("abana");
           void btn.offsetWidth;          // reinicia a animação
           btn.classList.add("abana");
-          mostrarAviso("Agora aguenta-te bot 😤");
+          tentativasOff++;
+          contadorOff.textContent = "😏 já tentaste desligar " + tentativasOff +
+                                    (tentativasOff === 1 ? " vez" : " vezes");
+          avisoCrescente("Agora aguenta-te bot 😤");
         }
+      });
+
+      // Popup "Tens a certeza?" — o "Não!" mantém a tocar 😈
+      document.getElementById("modalNao").addEventListener("click", function (e) {
+        e.stopPropagation();
+        modalOff.classList.remove("mostra");
+      });
+      document.getElementById("modalSim").addEventListener("click", function (e) {
+        e.stopPropagation();
+        modalOff.classList.remove("mostra");
+        audio.pause();
+        atualizarIcone();
       });
 
       // ─── Temporizador de desligar (sleep timer) ───
@@ -379,6 +457,64 @@
       tocar();   // tenta arrancar (a maioria dos browsers só deixa após interação)
     })();
   </script>
+
+  <!-- ─── Extras "irritantes" (comuns a todas as páginas) ─── -->
+  <script>
+    (function () {
+      // 1) Rasto de emojis a seguir o rato
+      const EMOJIS = ["✨","💀","🔥","😈","🎉","👀","⭐","💩"];
+      let ultimo = 0;
+      document.addEventListener("mousemove", function (e) {
+        const agora = Date.now();
+        if (agora - ultimo < 45) return;
+        ultimo = agora;
+        const s = document.createElement("div");
+        s.className = "rasto";
+        s.textContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+        s.style.left = e.clientX + "px";
+        s.style.top  = e.clientY + "px";
+        document.body.appendChild(s);
+        requestAnimationFrame(function () {
+          s.style.opacity = "0";
+          s.style.transform = "translate(-50%,-50%) translateY(-28px)";
+        });
+        setTimeout(function () { s.remove(); }, 800);
+      });
+
+      // 2) Título da aba a piscar quando o utilizador sai
+      const tituloOriginal = document.title;
+      let piscaId = null;
+      document.addEventListener("visibilitychange", function () {
+        if (document.hidden) {
+          let on = false;
+          piscaId = setInterval(function () {
+            document.title = on ? tituloOriginal : "👀 VOLTA AQUI!";
+            on = !on;
+          }, 600);
+        } else {
+          if (piscaId) { clearInterval(piscaId); piscaId = null; }
+          document.title = tituloOriginal;
+        }
+      });
+
+      // 3) Botões fujões (fogem do rato; ao fim de 4 tentativas deixam-se apanhar)
+      document.querySelectorAll(".fujao").forEach(function (el) {
+        let tentativas = 0;
+        el.addEventListener("mouseenter", function () {
+          if (tentativas >= 4) return;
+          tentativas++;
+          const dx = (Math.random() - 0.5) * 240;
+          const dy = (Math.random() - 0.5) * 140;
+          el.style.position = "relative";
+          el.style.transition = "transform 0.15s ease";
+          el.style.transform = "translate(" + dx + "px," + dy + "px)";
+        });
+        el.addEventListener("click", function () { el.style.transform = ""; });
+      });
+    })();
+  </script>
+
+  {% block scripts %}{% endblock %}
 
 </body>
 </html>
