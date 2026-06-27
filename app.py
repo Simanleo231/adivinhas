@@ -201,6 +201,17 @@ def jogar():
     return redirect(url_for("pergunta"))
 
 
+# ─── ROTA: Desistir (sair das perguntas sem guardar) ──
+@app.route("/desistir")
+@login_required
+def desistir():
+    session.pop("adivinhas", None)
+    session.pop("indice", None)
+    session.pop("pontuacao", None)
+    flash("Desististe. Não faz mal, há-de correr melhor. 🙃", "info")
+    return redirect(url_for("inicio"))
+
+
 # ─── ROTA: Mostrar pergunta ───────────────────────
 @app.route("/pergunta")
 @login_required

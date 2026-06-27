@@ -7,18 +7,26 @@
     button { color: white; background: orange; }
     .progresso { color: var(--suave); font-size: 0.9rem; }
     .pontos { color: var(--accent); }
+    h2 { display: inline-block; }
+    .desistir {
+      display: block; margin-top: 1.2rem; text-align: center;
+      color: #777; font-size: 0.85rem; text-decoration: none;
+    }
+    .desistir:hover { color: #ff4da6; text-decoration: underline; }
 {% endblock %}
 
 {% block content %}
 <div class="card">
   <h3 class="progresso">Pergunta {{ numero }} de {{ total }}</h3>
-  <h2>{{ pergunta }}</h2>
-  <h3 class="pontos">Pontuação: {{ pontuacao }}</h3>
+  <h2 id="perguntaTexto">{{ pergunta }}</h2>
+  <h3 class="pontos">Pontuação: <span id="pontosVal">{{ pontuacao }}</span></h3>
 
   <form action="/verificar" method="POST">
     <input type="text" name="resposta" placeholder="Resposta..." autofocus>
     <button type="submit">Verificar</button>
   </form>
+
+  <a href="/desistir" class="desistir">😭 Sou uma merda, quero desistir</a>
 </div>
 {% endblock %}
 
@@ -47,6 +55,63 @@
     setTimeout(function () {
       if (form && !enviado) form.submit();   // tempo esgotado → resposta vazia = erro
     }, 15000);
+  })();
+
+  // ─── Efeitos na pergunta ───
+  (function () {
+    const h2 = document.getElementById("perguntaTexto");
+    const texto = h2.textContent;
+
+    // 🎨 Cor (accent) aleatória a cada pergunta
+    const cores = ["#00d4ff","#ff6b35","#a855f7","#39ff6e","#ffe94e","#ff4da6"];
+    document.documentElement.style.setProperty(
+      "--accent", cores[Math.floor(Math.random() * cores.length)]);
+
+    // Efeito aleatório no texto: 0=typewriter 1=baralhado 2=espelhado 3=normal
+    const efeito = Math.floor(Math.random() * 4);
+    if (efeito === 0) {
+      h2.textContent = "";
+      let i = 0;
+      (function escreve() {
+        if (i <= texto.length) { h2.textContent = texto.slice(0, i); i++; setTimeout(escreve, 45); }
+      })();
+    } else if (efeito === 1) {
+      h2.textContent = texto.split("").sort(function () { return Math.random() - 0.5; }).join("");
+      setTimeout(function () { h2.textContent = texto; }, 1000);
+    } else if (efeito === 2) {
+      h2.style.transform = "scaleX(-1)";
+      setTimeout(function () { h2.style.transition = "transform 0.6s"; h2.style.transform = "scaleX(1)"; }, 1200);
+    }
+
+    // 🗣️ Voz a ler a pergunta (estranha de propósito)
+    try {
+      const u = new SpeechSynthesisUtterance(texto);
+      u.lang = "pt-PT"; u.rate = 0.9; u.pitch = 1.4;
+      setTimeout(function () { speechSynthesis.speak(u); }, 800);
+    } catch (e) {}
+
+    // 🎰 Pontuação estilo slot-machine
+    const alvoEl = document.getElementById("pontosVal");
+    if (alvoEl) {
+      const alvo = parseInt(alvoEl.textContent, 10) || 0;
+      let giros = 0;
+      const it = setInterval(function () {
+        alvoEl.textContent = Math.floor(Math.random() * 900 - 200);
+        if (++giros > 12) { clearInterval(it); alvoEl.textContent = alvo; }
+      }, 60);
+    }
+
+    // ⌨️ Dedos gordos: às vezes mete a letra ao lado (apaga-se fácil)
+    const VIZINHO = {a:"s",s:"d",d:"f",e:"r",r:"t",o:"p",i:"o",t:"y",n:"m",m:"n",c:"v"};
+    const input = document.querySelector('input[name="resposta"]');
+    if (input) {
+      input.addEventListener("keydown", function (e) {
+        const k = e.key.toLowerCase();
+        if (e.key.length === 1 && VIZINHO[k] && Math.random() < 0.12) {
+          setTimeout(function () { input.value += VIZINHO[k]; }, 0);
+        }
+      });
+    }
   })();
 </script>
 {% endblock %}

@@ -359,7 +359,7 @@
 
   <script>
     (function () {
-      // Nomes ANÓNIMOS das faixas → ficheiros musica1.mp3 ... musicaN.mp3
+      // Nomes ANÓNIMOS das faixas → ficheiros musica1.mp3 ... musica12.mp3
       const NOMES = [
         "Anónimo #1",
         "Faixa Sem Nome",
@@ -367,6 +367,12 @@
         "???",
         "Misteriosa",
         "Faixa Oculta",
+        "Sem Título",
+        "Faixa X",
+        "Incógnita",
+        "Clássico Perdido",
+        "Top Secret",
+        "Anónimo #12",
       ];
 
       const audio = document.getElementById("musica");
@@ -662,6 +668,103 @@
         document.body.style.transform = "rotate(180deg)";
         setTimeout(function () { document.body.style.transform = ""; }, 10000);
       }, 45000);
+
+      // 11) Chuva "Matrix" no fundo (atrás dos cartões)
+      const cv = document.createElement("canvas");
+      cv.style.cssText = "position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:0.22;";
+      document.body.appendChild(cv);
+      const ctx = cv.getContext("2d");
+      let cols, pingos = [];
+      function dimMatrix() {
+        cv.width = window.innerWidth; cv.height = window.innerHeight;
+        cols = Math.floor(cv.width / 14); pingos = [];
+        for (let i = 0; i < cols; i++) pingos[i] = Math.random() * cv.height;
+      }
+      dimMatrix();
+      window.addEventListener("resize", dimMatrix);
+      (function matrix() {
+        ctx.fillStyle = "rgba(10,12,25,0.08)"; ctx.fillRect(0, 0, cv.width, cv.height);
+        ctx.fillStyle = "#39ff6e"; ctx.font = "14px monospace";
+        for (let i = 0; i < cols; i++) {
+          ctx.fillText(String.fromCharCode(0x30A0 + Math.random() * 96), i * 14, pingos[i]);
+          pingos[i] += 14;
+          if (pingos[i] > cv.height && Math.random() > 0.975) pingos[i] = 0;
+        }
+        requestAnimationFrame(matrix);
+      })();
+
+      // 12) Balões a subir de vez em quando
+      setInterval(function () {
+        const b = document.createElement("div");
+        b.textContent = ["🎈","🎈","🟣","🔴","🟡"][Math.floor(Math.random() * 5)];
+        b.style.cssText = "position:fixed;bottom:-40px;z-index:56;pointer-events:none;font-size:" +
+          (20 + Math.random() * 20) + "px;left:" + (Math.random() * 100) +
+          "vw;transition:transform 6s linear, opacity 6s;";
+        document.body.appendChild(b);
+        requestAnimationFrame(function () {
+          b.style.transform = "translateY(-" + (window.innerHeight + 80) + "px)";
+          b.style.opacity = "0";
+        });
+        setTimeout(function () { b.remove(); }, 6200);
+      }, 7000);
+
+      // 13) Um bicho atravessa o ecrã às vezes
+      setInterval(function () {
+        const a = document.createElement("div");
+        a.textContent = ["🐈","🐕","🦔","🦆","🐢"][Math.floor(Math.random() * 5)];
+        a.style.cssText = "position:fixed;bottom:10px;left:-60px;z-index:57;pointer-events:none;" +
+          "font-size:2rem;transition:transform 4s linear;";
+        document.body.appendChild(a);
+        requestAnimationFrame(function () {
+          a.style.transform = "translateX(" + (window.innerWidth + 120) + "px)";
+        });
+        setTimeout(function () { a.remove(); }, 4200);
+      }, 18000);
+
+      // 14) "A pensar..." — a página congela 1s de vez em quando
+      setInterval(function () {
+        const f = document.createElement("div");
+        f.className = "fake-load";
+        f.style.background = "rgba(10,12,25,0.6)";
+        f.innerHTML = "<div>🧊 a pensar...</div>";
+        document.body.appendChild(f);
+        setTimeout(function () {
+          f.style.opacity = "0";
+          setTimeout(function () { f.remove(); }, 400);
+        }, 1000);
+      }, 30000);
+
+      // 15) Konami code (↑↑↓↓←→←→ B A) → MODO CAOS
+      const KON = ["arrowup","arrowup","arrowdown","arrowdown",
+                   "arrowleft","arrowright","arrowleft","arrowright","b","a"];
+      let kpos = 0;
+      document.addEventListener("keydown", function (e) {
+        const k = e.key.toLowerCase();
+        if (k === KON[kpos]) {
+          kpos++;
+          if (kpos === KON.length) { kpos = 0; modoCaos(); }
+        } else {
+          kpos = (k === KON[0]) ? 1 : 0;
+        }
+      });
+      function modoCaos() {
+        for (let i = 0; i < 120; i++) {
+          const c = document.createElement("div");
+          c.textContent = ["🎉","💥","🔥","😈","⭐","🤪"][Math.floor(Math.random() * 6)];
+          c.style.cssText = "position:fixed;top:-40px;z-index:95;pointer-events:none;font-size:" +
+            (16 + Math.random() * 30) + "px;left:" + (Math.random() * 100) +
+            "vw;transition:transform 3s linear, opacity 3s;";
+          document.body.appendChild(c);
+          (function (el) {
+            requestAnimationFrame(function () {
+              el.style.transform = "translateY(" + (window.innerHeight + 80) + "px) rotate(" +
+                (Math.random() * 720 - 360) + "deg)";
+              el.style.opacity = "0";
+            });
+            setTimeout(function () { el.remove(); }, 3200);
+          })(c);
+        }
+      }
     })();
   </script>
 
