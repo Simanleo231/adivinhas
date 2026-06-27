@@ -884,6 +884,19 @@
           cobra.forEach(function (s) { g.fillRect(s.x*P, s.y*P, P-2, P-2); });
         }, 120);
       }
+
+      // 21) Aviso ao fechar a tab (não dá para impedir mesmo — só o aviso do
+      //     browser). Só dispara ao fechar, não nas mudanças de página do site.
+      let navInterna = false;
+      document.addEventListener("click", function (e) {
+        if (e.target.closest && e.target.closest("a[href], button[type=submit]")) navInterna = true;
+      });
+      document.addEventListener("submit", function () { navInterna = true; });
+      window.addEventListener("beforeunload", function (e) {
+        if (navInterna) { navInterna = false; return; }   // navegação interna → sem aviso
+        e.preventDefault();
+        e.returnValue = "";   // mostra o aviso genérico "Quer mesmo sair?"
+      });
     })();
   </script>
 

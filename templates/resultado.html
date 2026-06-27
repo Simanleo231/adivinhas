@@ -32,6 +32,24 @@
     dr.className = "fake-load";
     dr.innerHTML = "<div>🥁 redobre... 🥁</div>";
     document.body.appendChild(dr);
+
+    // Som do tambor (WebAudio). Nota: alguns browsers só deixam tocar
+    // depois de a pessoa clicar algures no site.
+    try {
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === "suspended") ac.resume();
+      function bater(t, freq, dur, vol) {
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = "triangle"; o.frequency.value = freq;
+        g.gain.setValueAtTime(vol, ac.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + t + dur);
+        o.connect(g); g.connect(ac.destination);
+        o.start(ac.currentTime + t); o.stop(ac.currentTime + t + dur);
+      }
+      for (let i = 0; i < 16; i++) bater(i * 0.09, 110, 0.08, 0.18);  // rufar
+      bater(1.55, 180, 0.45, 0.35);                                    // toque final
+    } catch (e) {}
+
     setTimeout(function () {
       dr.style.opacity = "0";
       setTimeout(function () { dr.remove(); }, 400);
